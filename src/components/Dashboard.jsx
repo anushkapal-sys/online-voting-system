@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { supabase } from '../../supabaseClient';
 import { 
   motion, 
   AnimatePresence 
@@ -52,14 +52,22 @@ const Dashboard = ({ token, onLogout }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     fetchPolls();
   }, []);
 
   const fetchPolls = async () => {
     try {
-      const response = await axios.get('/api/polls');
-      setPolls(response.data);
+      // Fetch polls and their options in one go using Supabase joins
+      const { data, error } = await supabase
+        .from('polls')
+        .select(`
+          *,
+          options (*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPolls(data || []);
       setLoading(false);
     } catch (error) {
       toast.error('Failed to fetch polls');

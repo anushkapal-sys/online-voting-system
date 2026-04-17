@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Toaster } from 'react-hot-toast';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import './App.css';
@@ -29,9 +29,6 @@ const theme = createTheme({
     h3: { fontWeight: 600 },
   },
 });
-
-// Set the base URL for all API requests to the backend
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User } from 'lucide-react';
-import axios from 'axios';
+import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -18,15 +18,26 @@ const Login = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/login', formData);
+      // Query Supabase for a user with this email and password
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', formData.email)
+        .eq('password', formData.password)
+        .single();
       
-      if (response.data.success) {
-        onLogin(response.data.token);
-        toast.success(`Welcome back, ${response.data.user.name}!`);
+      if (error || !data) {
+        throw new Error('Invalid email or password');
+      }
+
+      if (data) {
+        // We use the userid as the "token" for your App.jsx logic
+        onLogin(data.userid);
+        toast.success(`Welcome back, ${data.name}!`);
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Login failed');
+      toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
